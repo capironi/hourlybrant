@@ -1,10 +1,9 @@
-name: Tweet Brant
+name: Tweet Every 4 Hours
 
 on:
-  workflow_dispatch:
-  # Uncomment and modify this if you want to schedule it
-  # schedule:
-  #   - cron: '0 * * * *'  # Uncomment to run every hour at 00 minutes
+  workflow_dispatch:  # Allows manual trigger via GitHub Actions
+  schedule:
+    - cron: '0 */4 * * *'  # Run every 4 hours at 00 minutes
 
 jobs:
   build:
@@ -13,21 +12,29 @@ jobs:
     steps:
       # Step 1: Checkout code
       - name: Checkout repository content
-        uses: actions/checkout@v3  # Ensure you're using the latest version of the checkout action
+        uses: actions/checkout@v3
 
       # Step 2: Set up Python environment
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Use a stable Python version for better compatibility
+          python-version: '3.10'
 
       # Step 3: Install Python dependencies
       - name: Install Python packages
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt  # Make sure requirements.txt is in the repo
+          pip install -r requirements.txt  # Ensure requirements.txt is in the repo
 
-      # Step 4: Execute Python script
+      # Step 4: Print environment variables for debugging
+      - name: Print environment variables (for debugging)
+        run: |
+          echo "CONSUMER_KEY=${{ secrets.CONSUMER_KEY }}"
+          echo "CONSUMER_SECRET=${{ secrets.CONSUMER_SECRET }}"
+          echo "ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }}"
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}"
+
+      # Step 5: Execute Python script (main.py)
       - name: Execute Python script (main.py)
         env:
           CONSUMER_KEY: ${{ secrets.CONSUMER_KEY }}
@@ -35,3 +42,8 @@ jobs:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
         run: python main.py
+
+      # Step 6: Verify cron is working correctly (for debugging purposes)
+      - name: Verify Cron Trigger Time
+        run: |
+          echo "Current UTC Time: $(date -u)"
